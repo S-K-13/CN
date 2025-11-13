@@ -1,0 +1,202 @@
+for http
+take two pcs 
+take one server server-pt
+take switch 2950-24
+
+click server
+click desktop
+click ip congif
+entr ipv4 address as 192.168.1.11
+enter def gateway as 192.168.1.1
+
+click pc1
+assign ip add ipv4 = 192.168.1.12
+def gateway as 192.168.1.1
+
+click pc2
+assign ip add ipv4 = 192.168.1.13
+def gateway as 192.168.1.1
+
+click server
+click services
+except http,https  
+turn off all services listed
+
+ 
+click server
+click edit on index.html file 
+make some changes 
+save 
+then 
+
+open pc1
+go to desktop
+open web browser
+search server ipv4 address 198.162.1.11
+the updated webpage will be shown 
+
+///////////////////
+
+for ftp 
+
+take two pcs 
+take one server server-pt
+take switch 2950-24
+
+click server
+click desktop
+click ip congif
+entr ipv4 address as 192.168.2.11
+no def gatewaay
+
+click pc1
+assign ip add ipv4 = 192.168.2.12
+def gateway = 192.168.2.11 ip of server
+
+click pc2
+assign ip add ipv4 = 192.168.2.13
+def gateway = 192.168.2.11 ip of server
+
+click server
+click services
+except ftp
+turn off all services listed
+
+
+in ftp service section 
+enter a username ssk
+put password 123
+tick WRDRL permission boxes
+click add
+open pc2 or pc1
+open cmd prompt 
+
+enter commands :
+ipconfig then press enter
+ftp 192.168.2.11(def gateway which is shown in above msg aftr ipconfig)
+enter username ssk
+enter password
+123
+
+enter command dir
+enter command help
+delete , rename one file and then enter quit 
+
+for delete:
+delete filename 
+for rename:
+rename current filemame newfilename
+done!!!
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Assignment No: 9  
+Title: Study and Analyze the Performance of HTTP, HTTPS, and FTP Protocol using Packet Tracer Tool  
+
+• Problem Statement:
+  – To study and analyze the working and performance of the HTTP, HTTPS, and FTP protocols using the Cisco Packet Tracer tool.  
+
+• Aim:
+  – To understand how different application layer protocols (HTTP, HTTPS, and FTP) function in a network and to compare their behavior and level of security.
+
+• Tools Used:
+  – Cisco Packet Tracer Software  
+
+• Concept Description:
+
+  1. **HTTP (Hypertext Transfer Protocol):**
+     – HTTP is an application-level protocol used for distributed and collaborative hypermedia information systems.
+     – It is the foundation of data communication on the World Wide Web.
+     – It uses **TCP port 80** for communication.
+     – HTTP follows the **client-server model**, where:
+       • The client (browser) sends a request to the server.
+       • The server processes it and sends a response.
+     – HTTP is a **stateless** and **connectionless** protocol.
+       • Each request is independent — the server does not remember previous interactions.
+     – HTTP allows transmission of multiple data types (HTML, images, videos, etc.) using MIME types.
+     – Default behavior:
+       – Connectionless: Disconnects after each response.
+       – Stateless: No session memory.
+       – Media Independent: Can transmit any type of data format.
+
+  2. **HTTPS (Hypertext Transfer Protocol Secure):**
+     – HTTPS is the **secure version of HTTP**.
+     – It provides encrypted communication between the browser and server using **SSL/TLS protocols**.
+     – Uses **TCP port 443**.
+     – HTTPS = HTTP + SSL/TLS Encryption.
+     – It authenticates the server and ensures that transmitted data is encrypted, preventing interception by attackers.
+     – Commonly used for:
+       • Banking websites
+       • E-commerce platforms
+       • Login pages and confidential transactions
+
+     **Advantages of HTTPS:**
+     – Provides data encryption and integrity.
+     – Protects against data theft and hacking.
+     – Builds user trust and credibility.
+     – Safe for online payments and login forms.
+
+     **Disadvantages of HTTPS:**
+     – Requires purchasing and installing an SSL certificate.
+     – Slightly slower than HTTP due to encryption/decryption overhead.
+     – Increased resource usage and maintenance cost.
+
+  3. **FTP (File Transfer Protocol):**
+     – FTP is used to transfer files between a client and server over a network.
+     – Uses **TCP ports 20 and 21**.
+     – Operates in a **client-server model** where:
+       • Client connects to an FTP server.
+       • Files can be uploaded, downloaded, renamed, or deleted.
+     – Supports two modes:
+       • Active Mode – server initiates the data connection.
+       • Passive Mode – client initiates the data connection.
+     – Provides basic authentication using username and password.
+     – Commonly used for:
+       • Uploading website files to servers.
+       • Transferring configuration files between network devices.
+
+  4. **Practical Procedure in Packet Tracer:**
+     1. Create a small network topology consisting of:
+        – One **Server** (acting as HTTP, HTTPS, and FTP server).
+        – One or more **PCs/Laptops** (as clients).
+     2. Assign IP addresses to all devices (e.g., 192.168.1.x).
+     3. Enable **HTTP, HTTPS, and FTP services** on the server (under “Services” tab).
+     4. Configure the **Web Browser** on the client PC:
+        – For HTTP: Enter `http://<server IP>`
+        – For HTTPS: Enter `https://<server IP>`
+     5. For FTP:
+        – Open the Command Prompt on the PC.
+        – Connect to the FTP server using:  
+          `ftp <server IP>`
+        – Login using default credentials (username: cisco, password: cisco).
+        – Perform operations such as uploading or downloading files.
+     6. Observe data transmission, request/response time, and encryption behavior for each protocol.
+     7. Compare the performance of HTTP, HTTPS, and FTP in terms of speed, security, and reliability.
+
+  5. **Working Principle:**
+     – HTTP transmits data in plain text over TCP, making it faster but less secure.
+     – HTTPS encrypts data using SSL/TLS, making it slower but more secure.
+     – FTP allows authenticated file transfers between systems over TCP.
+
+• Output/Observation:
+  – Successfully configured HTTP, HTTPS, and FTP servers in Cisco Packet Tracer.
+  – Verified the functionality of each protocol:
+    • HTTP – Data transfer without encryption.
+    • HTTPS – Secure and encrypted data communication.
+    • FTP – File upload/download between client and server.
+  – Analyzed and compared their working characteristics.
+
+• Key Differences Observed:
+  | Protocol | Port Used | Security | Data Transfer Type | Use Case |
+  |-----------|------------|-----------|--------------------|-----------|
+  | HTTP | 80 | Not Secure | Plain Text | Browsing, non-sensitive data |
+  | HTTPS | 443 | Secure (SSL/TLS) | Encrypted | Banking, login pages |
+  | FTP | 20, 21 | Basic Authentication | File Transfer | File upload/download |
+
+• Outcome:
+  – Understood how HTTP, HTTPS, and FTP function at the application layer.
+  – Analyzed their performance, advantages, and limitations using Packet Tracer.
+
+• Conclusion:
+  – The performance and behavior of HTTP, HTTPS, and FTP protocols were successfully analyzed.
+  – HTTPS ensures secure communication compared to HTTP, while FTP enables efficient file transfers between systems.

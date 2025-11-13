@@ -1,0 +1,218 @@
+select 3 routers 1841
+3  switches 2950-24
+6 pcs 
+
+click router one 
+turn off
+put wic 1t component in right slot 
+
+do same for router 3
+
+open router two which is in middle 
+turn off 
+put to wic 1t component in both slots 
+turn on 
+
+
+pc1:
+ipv4:192.168.1.2
+def gateway: 192.168.1.4
+
+pc2:
+ipv4:192.168.1.3
+def gateway: 192.168.1.4
+
+pc3:
+ipv4:192.168.2.2
+def gateway: 192.168.2.4
+
+
+pc4:
+ipv4:192.168.2.3
+def gateway: 192.168.2.4
+
+
+pc5:
+ipv4:192.168.3.2
+def gateway: 192.168.3.4
+
+pc6:
+ipv4:192.168.3.3
+def gateway: 192.168.3.4
+
+
+open router1:
+click config
+open fastethernet 0/0
+enter ipv4: 192.168.1.4
+turn on 
+
+open router3:
+click config
+open fastethernet 0/0
+enter ipv4: 192.168.3.4
+turn on
+
+open router2:
+click config
+open fastethernet 0/0
+enter ipv4: 192.168.2.4
+turn on
+
+open router1:
+click config
+select seriel 0/0/0 
+enter ipv4 192.168.4.2
+turn on
+
+
+open router3:
+click config
+select seriel 0/0/0
+enter ipv4 192.168.5.3
+turn on
+
+open router2:
+click config
+select seriel 0/0/0
+enter ipv4 192.168.4.3
+turn on 
+select seriel 0/1/0
+enter ipv4 192.168.5.2
+turn on
+
+open router1:
+open config
+click rip:
+enter network:
+192.168.1.0
+add
+enter network:
+192.168.4.0
+add
+click settings
+click save
+
+open router2:
+open config
+click rip:
+enter network:
+192.168.2.0
+add
+enter network:
+192.168.4.0
+add
+enter network:
+192.168.5.0
+add
+click settings
+click save
+
+open router3:
+open config
+click rip:
+enter network:
+192.168.3.0
+add
+enter network:
+192.168.5.0
+add
+click settings
+click save
+
+send pdu 
+check connection using ping 
+
+done!!!
+
+///////////////////////////
+
+
+Assignment No: 3
+Title: Use Packet Tracer tool for configuration of 3-router networks using one of the following protocols: RIP/OSPF/BGP.
+
+• Objective:
+  – To configure multiple routers in a network using Cisco Packet Tracer.
+  – To understand different routing protocols (RIP, OSPF, and BGP) and how they determine data paths between networks.
+
+• Aim:
+  – The main aim of this practical is to learn how routers exchange routing information to ensure data can be sent between networks.
+  – To understand the functioning and configuration of dynamic routing protocols.
+
+• Tools Used:
+  – Cisco Packet Tracer Software
+  – Routers, Switches, PCs (as end devices)
+  – Cables: Copper straight-through and crossover cables
+
+• Concept Description:
+  – A router is a network device that connects multiple networks and forwards packets based on IP addresses.
+  – **Routing** is the process of selecting paths in a network to send data from source to destination.
+  – There are two types of routing:
+      1. **Static Routing:** Routes are manually defined by the network administrator.
+      2. **Dynamic Routing:** Routers automatically exchange route information using routing protocols.
+
+• Routing Protocols Used:
+  1. **RIP (Routing Information Protocol):**
+     – RIP is one of the oldest distance-vector routing protocols.
+     – It uses **hop count** as the routing metric (number of routers data passes through).
+     – The maximum hop count is **15**, beyond which the destination is considered unreachable.
+     – RIP updates routing tables every 30 seconds and prevents loops using hop limits.
+
+  2. **OSPF (Open Shortest Path First):**
+     – OSPF is a **link-state routing protocol** that uses **Dijkstra’s shortest path algorithm**.
+     – It provides faster convergence and is suitable for large networks.
+     – It divides a network into areas and exchanges topology information among routers.
+
+  3. **BGP (Border Gateway Protocol):**
+     – BGP is used for routing between large networks or across the internet.
+     – It is a **path-vector protocol**, used by Internet Service Providers (ISPs) to exchange routes between autonomous systems.
+
+• Why We Perform This Practical:
+  – To learn how routers communicate and share routing tables using dynamic routing protocols.
+  – To understand how packets find their paths across multiple routers and networks.
+  – To practically configure and verify routing between different subnets.
+
+• Procedure Summary (Example Using RIP Protocol):
+  1. Open Cisco Packet Tracer.
+  2. Place three routers (Router0, Router1, Router2) and connect them using serial or Ethernet ports.
+  3. Connect PCs to each router using switches and assign IP addresses according to the IP addressing table.
+  4. Configure IP addresses for router interfaces (FastEthernet and Serial).
+  5. Enable routing protocol RIP:
+     Router(config)#router rip
+     Router(config-router)#network 192.168.10.0
+     Router(config-router)#network 10.0.0.0
+  6. Repeat for all routers with respective network addresses.
+  7. Verify connections using the “ping” command between PCs from different networks.
+
+• Example Commands:
+  Router0(config)#router rip
+  Router0(config-router)#network 192.168.10.0
+  Router0(config-router)#network 10.0.0.0
+
+  Router1(config)#router rip
+  Router1(config-router)#network 192.168.20.0
+  Router1(config-router)#network 10.0.0.0
+  Router1(config-router)#network 11.0.0.0
+
+  Router2(config)#router rip
+  Router2(config-router)#network 192.168.30.0
+  Router2(config-router)#network 11.0.0.0
+
+• Output:
+  – All three routers successfully exchange routing information.
+  – PCs connected to different routers can communicate with each other.
+  – “Ping” command between PCs of different networks returns successful replies.
+
+• Concept Used:
+  – Dynamic Routing Protocols (RIP/OSPF/BGP)
+  – IP Addressing and Subnetting
+  – Router Configuration in Packet Tracer
+  – Packet Forwarding and Verification using Ping
+
+• Outcome:
+  – Students learned to configure routers and enable communication across different networks.
+  – Understood how routing tables are built and maintained using dynamic routing protocols.
+
+• Conclusion:
+  – We have successfully configured a 3-router network using the RIP protocol in Cisco Packet Tracer.
+  – The experiment demonstrated how routers exchange routing information and forward packets efficiently between different networks.

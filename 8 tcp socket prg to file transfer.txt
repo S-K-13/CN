@@ -1,0 +1,544 @@
+gedit HelloWorld.java
+javac HelloWorld.java
+java HelloWorld
+
+/////////////////////////////
+
+
+
+
+==========================================================
+TCP FILE TRANSFER SERVER (LINE-BY-LINE EXPLANATION)
+==========================================================
+
+import java.io.*; 
+import java.net.*;
+// java.io → FileInputStream, FileOutputStream, DataInputStream, etc.
+// java.net → ServerSocket, Socket (network communication)
+
+public class TCPServerFileTransfer {
+    public static void main(String[] args) {
+        int port = 6000; 
+        // Port on which server will listen for client connections.
+
+        System.out.println("Starting TCP File Receiver (server) on port " + port + " ...");
+
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            // Creates a ServerSocket that LISTENS on port 6000.
+            // try-with-resources ensures serverSocket closes automatically.
+
+            System.out.println("Waiting for client connection...");
+
+            Socket clientSocket = serverSocket.accept();
+            // accept() → server waits (blocking) until a client connects.
+            // Returns a new Socket used to communicate with that client.
+
+            System.out.println("Client connected from: " + clientSocket.getInetAddress());
+            // Prints client's IP address.
+
+            DataInputStream dis = new DataInputStream(
+                    new BufferedInputStream(clientSocket.getInputStream()));
+            // Wraps client's InputStream with Buffered + DataInputStream.
+            // dataInputStream.readUTF(), readLong(), read() work on binary file data.
+
+            // ---------- STEP 1: Receive filename ----------
+            String filename = dis.readUTF();
+            // Client sends filename as UTF string.
+            System.out.println("Receiving file: " + filename);
+
+            // ---------- STEP 2: Receive file size ----------
+            long fileSize = dis.readLong();
+            // File size is needed to know exactly how many bytes to read.
+            System.out.println("Expected file size (bytes): " + fileSize);
+
+            // ---------- STEP 3: Receive file content ----------
+            File outFile = new File("received_" + filename);
+            // Creates a new file name with prefix "received_".
+
+            FileOutputStream fos = new FileOutputStream(outFile);
+            // Output stream used to write the received bytes into local file.
+
+            byte[] buffer = new byte[4096];
+            // Buffer to store chunks of incoming bytes.
+
+            long remaining = fileSize;
+            // Tracks how many bytes are still left to read.
+
+            while (remaining > 0) {
+                // Loop continues until the exact file size has been received.
+
+                int read = dis.read(buffer, 0, (int) Math.min(buffer.length, remaining));
+                // Reads from client into buffer.
+                // Ensures we do not read more than the remaining bytes.
+                // read() returns number of bytes read OR -1 if stream ends unexpectedly.
+
+                if (read == -1) break; 
+                // If client disconnects early → end loop.
+
+                fos.write(buffer, 0, read);
+                // Writes the bytes into file.
+
+                remaining -= read;
+                // Updates remaining file size.
+            }
+
+            fos.flush();
+            // Forces remaining buffered bytes to be written to file.
+
+            fos.close();
+            // Close output file stream.
+
+            dis.close();
+            // Close input stream.
+
+            clientSocket.close();
+            // Close connection with client.
+
+            System.out.println("File received successfully and saved as: received_" + filename);
+
+        } catch (IOException e) {
+            System.err.println("Server error: " + e.getMessage());
+        }
+
+        System.out.println("Server stopped.");
+        // Printed after try block finishes.
+    }
+}
+
+
+
+==========================================================
+TCP FILE TRANSFER CLIENT (LINE-BY-LINE EXPLANATION)
+==========================================================
+
+import java.io.*; 
+import java.net.*;
+import java.util.Scanner;
+// java.util.Scanner → take user input (server IP + filename)
+// java.net.Socket → connect to server
+// java.io.* → file & stream handling
+
+public class TCPClientFileTransfer {
+    public static void main(String[] args) {
+
+        String serverIP = "127.0.0.1";
+        // Default server IP (localhost).
+        // If two PCs are used, user will enter server’s LAN IP.
+
+        int port = 6000;
+        // Port where server is listening.
+
+        Scanner sc = new Scanner(System.in);
+        // Scanner used to read user input.
+
+        System.out.print("Enter server IP (or press Enter to use " + serverIP + "): ");
+        String ipInput = sc.nextLine().trim();
+        // Reads input from user.
+        // If left empty → default IP is used.
+
+        if (!ipInput.isEmpty()) serverIP = ipInput;
+        // If user entered a valid IP → override default IP.
+
+        System.out.print("Enter full path of file to send: ");
+        String filepath = sc.nextLine().trim();
+        // Reads the path of the file to be sent.
+
+        File file = new File(filepath);
+        // File object representing the file.
+
+        if (!file.exists() || !file.isFile()) {
+            // Check if file actually exists.
+            System.err.println("File not found or not a regular file: " + filepath);
+            sc.close();
+            return;
+        }
+
+        long fileSize = file.length();
+        // Get size of file in bytes.
+
+        System.out.println("File to send: " + file.getName() + " (" + fileSize + " bytes)");
+        sc.close();
+        // Scanner closed (no more input needed).
+
+        try (Socket socket = new Socket(serverIP, port)) {
+            // Connects to server at IP:port using a TCP socket.
+            // try-with-resources ensures socket closes automatically.
+
+            System.out.println("Connected to server: " + serverIP + ":" + port);
+
+            DataOutputStream dos = new DataOutputStream(
+                    new BufferedOutputStream(socket.getOutputStream()));
+            // DataOutputStream allows sending UTF, long, and raw bytes.
+            // BufferedOutputStream improves efficiency.
+
+            // ---------- STEP 1: Send filename ----------
+            dos.writeUTF(file.getName());
+            // Server reads this using readUTF().
+
+            // ---------- STEP 2: Send file size ----------
+            dos.writeLong(fileSize);
+            // Server needs exact file size to read bytes accurately.
+
+            dos.flush();
+            // Ensures the filename + file size are transmitted immediately.
+
+            // ---------- STEP 3: Send file bytes ----------
+            FileInputStream fis = new FileInputStream(file);
+            // Reads file from disk as raw bytes.
+
+            byte[] buffer = new byte[4096];
+            // Buffer for reading chunks of the file.
+
+            int read;
+            while ((read = fis.read(buffer)) > 0) {
+                // Reads bytes into buffer until EOF.
+                dos.write(buffer, 0, read);
+                // Sends bytes to server.
+            }
+
+            dos.flush();
+            // Ensures all bytes are sent.
+
+            System.out.println("File sent successfully.");
+
+            fis.close();  // Close file input stream
+            dos.close();  // Close data output stream
+
+        } catch (IOException e) {
+            System.err.println("Client error: " + e.getMessage());
+        }
+    }
+}
+
+
+
+
+
+
+//////////////////////////////////////////////////////
+
+
+
+
+
+
+
+===========================================================
+STEPS TO RUN TCP FILE TRANSFER PROGRAM
+ON SAME PC (TWO TERMINALS) AND ON TWO DIFFERENT PCs (UBUNTU)
+===========================================================
+
+
+===========================================================
+PART 1️⃣ — RUN ON SAME PC (TWO TERMINALS)
+===========================================================
+
+STEP 1 — OPEN TERMINAL 1 → RUN SERVER
+-----------------------------------------------------------
+cd Desktop
+# Go to folder where TCPServerFileTransfer.java is stored
+
+javac TCPServerFileTransfer.java
+# Compile server code
+
+java TCPServerFileTransfer
+# Start server
+# Output:
+# Starting TCP File Receiver...
+# Waiting for client connection...
+
+# Keep this terminal OPEN (server is waiting).
+
+
+STEP 2 — OPEN TERMINAL 2 → RUN CLIENT
+-----------------------------------------------------------
+cd Desktop
+# Go to folder where TCPClientFileTransfer.java is stored
+
+javac TCPClientFileTransfer.java
+# Compile client code
+
+java TCPClientFileTransfer
+# Run client program
+
+When asked:
+Enter server IP:
+→ press Enter (because server is on same PC → IP = 127.0.0.1)
+
+Enter full path of file to send:
+→ Example: /home/user/Desktop/sample.txt
+
+# Client Output:
+Connected to server
+File sent successfully.
+
+# Server Output:
+Client connected
+Receiving file: sample.txt
+File received successfully.
+
+
+===========================================================
+PART 2️⃣ — RUN ON TWO DIFFERENT PCs (BOTH UBUNTU)
+===========================================================
+
+REQUIREMENTS:
+-----------------------------------------------------------
+✔ Both PCs must be connected to SAME WiFi/LAN  
+✔ Java installed on both PCs  
+✔ Firewall must allow port 6000  
+✔ Server must run FIRST  
+
+
+STEP 1 — GET SERVER PC’s IP ADDRESS
+-----------------------------------------------------------
+On SERVER PC terminal:
+
+ip addr show
+
+Find your WiFi/Ethernet adapter's IP, example:
+inet 192.168.1.25
+
+THIS is the IP client will use.
+
+
+STEP 2 — RUN SERVER ON SERVER PC
+-----------------------------------------------------------
+cd Desktop
+javac TCPServerFileTransfer.java
+java TCPServerFileTransfer
+
+# Output:
+Starting TCP File Receiver...
+Waiting for client...
+
+
+STEP 3 — UPDATE CLIENT TO USE SERVER IP
+-----------------------------------------------------------
+On CLIENT PC, when running program:
+
+Enter server IP:
+→ Type server’s IP, e.g.:
+192.168.1.25
+
+Enter full path of file to send:
+→ Example: /home/client/Desktop/photo.jpg
+
+
+STEP 4 — RUN CLIENT ON CLIENT PC
+-----------------------------------------------------------
+cd Desktop
+javac TCPClientFileTransfer.java
+java TCPClientFileTransfer
+
+# Client Output:
+Connected to server: 192.168.1.25
+File sent successfully.
+
+# Server Output:
+Client connected from: 192.168.1.40
+Receiving file: photo.jpg
+File received successfully (saved as received_photo.jpg)
+
+
+===========================================================
+IMPORTANT NOTES (FOR BOTH MODES)
+===========================================================
+
+✔ TCP requires SAME port on Client & Server:
+    port = 6000
+
+✔ For SAME PC:
+    serverIP = 127.0.0.1  (localhost)
+
+✔ For TWO PCs:
+    serverIP = actual LAN IP (like 192.168.x.x)
+
+✔ File is saved on SERVER as:
+    received_<filename>
+
+✔ If firewall blocks port:
+    sudo ufw allow 6000
+
+✔ To check if server is listening:
+    sudo lsof -i :6000
+
+✔ Wired or wireless network both supported.
+
+
+===========================================================
+SUMMARY (VERY SHORT VERSION)
+===========================================================
+
+SAME PC:
+1. Terminal 1 → run server  
+2. Terminal 2 → run client → use IP 127.0.0.1  
+
+TWO PCs:
+1. Find server IP using "ip addr show"  
+2. Server PC → run server  
+3. Client PC → run client → enter server IP  
+4. File is transferred successfully.  
+
+===========================================================
+
+
+
+
+
+
+//////////////////////////////
+
+
+
+
+
+
+
+Assignment No: 6
+Title: Write a program using TCP socket for "Say Hello" – Client & Server model.  
+       Write a program for transferring files as a client-server application.
+
+------------------------------------------------------
+1. OBJECTIVE:
+------------------------------------------------------
+• To implement TCP socket programming for basic communication.
+• To create a client-server model where:
+  – Client sends a message (“Hello”) to the server.
+  – Server responds back.
+• To implement a program that transfers files between client and server using TCP.
+
+------------------------------------------------------
+2. WHY WE PERFORM THIS PRACTICAL:
+------------------------------------------------------
+• To understand how communication happens between two systems over TCP.
+• To learn the process of establishing a connection (TCP handshake) using sockets.
+• To see how data (messages or files) can be sent reliably over the network.
+• To gain real-time experience in writing client and server applications.
+
+------------------------------------------------------
+3. CONCEPT / THEORY:
+------------------------------------------------------
+
+A. **What is TCP Socket Programming?**
+• TCP (Transmission Control Protocol) is a reliable, connection-oriented transport protocol.
+• Socket programming allows two machines to communicate using IP + Port.
+• A TCP socket provides:
+  – Reliable delivery  
+  – Ordered delivery  
+  – Error handling  
+  – Acknowledgment mechanism  
+
+B. **TCP Server:**
+A typical TCP server performs these steps:
+1. **socket()** – Create socket.
+2. **bind()** – Attach socket to IP/Port.
+3. **listen()** – Wait for client requests.
+4. **accept()** – Accept the client.
+5. **send()/recv()** – Exchange data.
+6. **close()** – Close connection.
+
+C. **TCP Client:**
+1. **socket()** – Create socket.
+2. **connect()** – Connect to server IP/Port.
+3. **send()/recv()** – Exchange data.
+4. **close()** – Close connection.
+
+------------------------------------------------------
+4. PART 1: "SAY HELLO" CLIENT-SERVER PROGRAM
+------------------------------------------------------
+
+A. **Working:**
+• The client connects to the server using TCP.
+• Client sends a message: “Hello Server”.
+• Server receives it and replies with: “Hello Client”.
+• Both sides print messages on screen.
+• Connection is closed.
+
+B. **Flow:**
+Client → sends HELLO → Server  
+Server → replies HELLO → Client  
+
+Message exchange occurs over a TCP reliable stream.
+
+------------------------------------------------------
+5. PART 2: FILE TRANSFER USING TCP
+------------------------------------------------------
+
+A. **Working:**
+• A file is present on the server system.
+• The client requests the file.
+• Server reads the file in binary/text mode.
+• Server sends file data as TCP packets.
+• Client receives the packets and writes them into a new file.
+• Successful file transfer is displayed.
+
+B. **How Files Are Sent Using Socket:**
+1. Open file (server side): `fopen()` or fileInputStream
+2. Read file in chunks (buffer)
+3. Send each chunk using `send()`
+4. Client receives each chunk using `recv()`
+5. Write the data to a new file
+6. Close file + close connection
+
+C. **Advantages of Using TCP for File Transfer:**
+• No data loss  
+• Proper ordering of packets  
+• Error checking  
+• Reliable connection  
+
+------------------------------------------------------
+6. TCP SOCKET FUNCTIONS USED:
+------------------------------------------------------
+• **socket()** – Creates socket  
+• **bind()** – Binds socket to port  
+• **listen()** – Waits for client  
+• **accept()** – Accept client request  
+• **connect()** – Client connects to server  
+• **send()** – Sends data  
+• **recv()** – Receives data  
+• **close()** – Closes connection  
+
+------------------------------------------------------
+7. OUTPUT / EXPECTED RESULT:
+------------------------------------------------------
+
+A. For SAY HELLO:
+• Server shows:
+  “Client connected”
+  “Received from client: Hello Server”
+• Client shows:
+  “Received from server: Hello Client”
+
+B. For File Transfer:
+• Client shows:
+  “File received successfully”
+• Server shows:
+  “File sent successfully”
+• A duplicate copy of the file appears on the client side.
+
+------------------------------------------------------
+8. CONCEPTS USED:
+------------------------------------------------------
+• TCP Connection Establishment (3-way handshake)
+• Client-Server communication model
+• Socket programming (send/recv)
+• File handling and byte streaming
+• Reliable data transfer
+
+------------------------------------------------------
+9. OUTCOME:
+------------------------------------------------------
+• Students understood how TCP establishes a connection between client and server.
+• Learned how to send normal text messages over network sockets.
+• Successfully implemented file transfer using TCP.
+• Gained practical experience with real communication programs.
+
+------------------------------------------------------
+10. CONCLUSION:
+------------------------------------------------------
+We successfully developed TCP-based client-server applications for:
+• Exchanging simple messages ("Say Hello")  
+• Transferring files reliably  
+
+This practical demonstrated the reliability of TCP for data communication and file exchange across a network.

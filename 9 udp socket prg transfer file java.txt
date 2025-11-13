@@ -1,0 +1,563 @@
+gedit HelloWorld.java
+javac HelloWorld.java
+java HelloWorld
+
+/////////////////////////////
+
+
+
+
+===============================================================
+UDP CLIENT CODE (Line-by-Line Explanation)
+===============================================================
+
+/*
+UDP single-text-file transfer (simple)
+- Client sends exactly one text file to server using UDP.
+- Steps:
+    1) Send filename
+    2) Send file size (8 bytes)
+    3) Send actual file bytes
+*/
+
+import java.io.*;       
+// For File, FileInputStream, IOException
+
+import java.net.*;      
+// For DatagramSocket, DatagramPacket, InetAddress
+
+import java.nio.ByteBuffer;
+// For converting long (file size) into 8 bytes (Big Endian)
+
+public class UDPClientSingleFile {
+
+    public static void main(String[] args) {
+
+        DatagramSocket socket = null;
+        // This UDP socket will be used for sending packets.
+
+        try {
+            // ------------------------------
+            // SERVER IP & PORT
+            // ------------------------------
+            InetAddress serverIP = InetAddress.getByName("127.0.0.1");
+            // The server's IP address. 127.0.0.1 means same PC.
+            // Replace with LAN IP for two-PC communication.
+
+            int serverPort = 9876;
+            // The port number server is listening on for UDP packets.
+
+            // ------------------------------
+            // SELECT FILE TO SEND
+            // ------------------------------
+            String filePath = "text.txt";
+            // The text file to send. Must be present in the same folder.
+
+            File file = new File(filePath);
+            // File object for handling the selected file.
+
+            if (!file.exists() || !file.isFile()) {
+                // Check if file exists and is a normal file.
+                System.err.println("File not found: " + filePath);
+                return;
+            }
+
+            socket = new DatagramSocket();
+            // Create UDP socket for sending data.
+
+            socket.setSoTimeout(5000);
+            // Optional timeout for receiving (not used here, but safe practice).
+
+            // ------------------------------
+            // STEP 1 — SEND FILENAME
+            // ------------------------------
+            String fileName = file.getName();
+            // Extract file name (e.g., "text.txt")
+
+            byte[] nameData = fileName.getBytes("UTF-8");
+            // Convert filename string to bytes.
+
+            DatagramPacket namePacket =
+                new DatagramPacket(nameData, nameData.length, serverIP, serverPort);
+            // Packet containing filename bytes to server.
+
+            socket.send(namePacket);
+            // Send filename packet.
+            System.out.println("Sent filename: " + fileName);
+
+            // ------------------------------
+            // STEP 2 — SEND FILE SIZE (8 bytes)
+            // ------------------------------
+            long fileSize = file.length();
+            // Determine actual size of the file in bytes.
+
+            byte[] sizeData = ByteBuffer.allocate(8).putLong(fileSize).array();
+            // Convert long → 8-byte array using ByteBuffer.
+
+            DatagramPacket sizePacket =
+                new DatagramPacket(sizeData, sizeData.length, serverIP, serverPort);
+            // Create packet containing file size.
+
+            socket.send(sizePacket);
+            // Send file size to server.
+            System.out.println("Sent file size: " + fileSize + " bytes");
+
+            // ------------------------------
+            // STEP 3 — SEND FILE CONTENT
+            // ------------------------------
+            FileInputStream fis = new FileInputStream(file);
+            // Stream for reading file bytes from disk.
+
+            byte[] buffer = new byte[4096];
+            // 4KB buffer for sending chunks of file.
+
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                // Read up to 4096 bytes at a time.
+
+                DatagramPacket filePacket =
+                    new DatagramPacket(buffer, bytesRead, serverIP, serverPort);
+                // Create UDP packet with file chunk.
+
+                socket.send(filePacket);
+                // Send the chunk.
+
+                Thread.sleep(2); // small pause
+                // Optional → prevents too many UDP packets too quickly.
+            }
+
+            fis.close();
+            // Close file input stream after complete send.
+
+            System.out.println("File data sent successfully.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (socket != null && !socket.isClosed()) socket.close();
+            // Always close UDP socket in finally block.
+        }
+    }
+}
+
+
+
+===============================================================
+UDP SERVER CODE (Line-by-Line Explanation)
+===============================================================
+
+import java.io.*;       
+// For FileOutputStream, IOException
+
+import java.net.*;      
+// For DatagramSocket, DatagramPacket
+
+import java.nio.ByteBuffer;
+// For converting received 8 bytes → long (file size)
+
+public class UDPServerSingleFile {
+
+    public static void main(String[] args) {
+
+        DatagramSocket socket = null;
+        // UDP server socket for receiving packets.
+
+        try {
+            int serverPort = 9876;
+            socket = new DatagramSocket(serverPort);
+            // Bind server to port 9876 → starts listening for packets.
+
+            System.out.println("UDP Server listening on port " + serverPort);
+
+            byte[] recvBuffer = new byte[4096];
+            // Buffer for receiving packet data.
+
+            DatagramPacket packet =
+                new DatagramPacket(recvBuffer, recvBuffer.length);
+            // DatagramPacket used for all receives.
+
+            // ------------------------------
+            // STEP 1 — RECEIVE FILENAME
+            // ------------------------------
+            socket.receive(packet);
+            // Blocks until a packet is received (containing filename).
+
+            String fileName =
+                new String(packet.getData(), 0, packet.getLength(), "UTF-8");
+            // Convert received bytes to filename string.
+
+            System.out.println("Receiving file: " + fileName);
+
+            // ------------------------------
+            // STEP 2 — RECEIVE FILE SIZE (8 bytes)
+            // ------------------------------
+            socket.receive(packet);
+            // Wait for file size packet.
+
+            ByteBuffer bb =
+                ByteBuffer.wrap(packet.getData(), 0, packet.getLength());
+            // Wrap received bytes for reading long.
+
+            long fileSize = bb.getLong();
+            // Get file size from ByteBuffer.
+
+            System.out.println("Expected file size: " + fileSize + " bytes");
+
+            // ------------------------------
+            // STEP 3 — RECEIVE FILE CONTENT
+            // ------------------------------
+            FileOutputStream fos =
+                new FileOutputStream("received_" + fileName);
+            // Prepare output stream to save the file.
+
+            long received = 0;
+            // Track number of bytes received so far.
+
+            while (received < fileSize) {
+                // Loop until entire file is received.
+
+                socket.receive(packet);
+                // Receive next chunk of file bytes.
+
+                int len = packet.getLength();
+                // Number of bytes in this chunk.
+
+                fos.write(packet.getData(), 0, len);
+                // Write chunk to output file.
+
+                received += len;
+                // Increase count of received bytes.
+            }
+
+            fos.flush();
+            fos.close();
+            // Close output file.
+
+            System.out.println("File received successfully and saved as: received_" + fileName);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (socket != null && !socket.isClosed()) socket.close();
+            // Close UDP server socket.
+            System.out.println("Server closed.");
+        }
+    }
+}
+
+
+
+
+
+/////////////////////////////
+
+
+
+
+
+
+
+
+===============================================================
+STEPS TO RUN UDP SINGLE-TEXT-FILE TRANSFER PROGRAM
+(ON SAME PC USING TWO TERMINALS & ON TWO DIFFERENT UBUNTU PCs)
+===============================================================
+
+
+===============================================================
+PART 1️⃣ — RUN ON SAME PC USING TWO TERMINALS
+===============================================================
+
+REQUIREMENTS:
+---------------------------------------------------------------
+✔ Both files must be in the same folder:
+      UDPClientSingleFile.java
+      UDPServerSingleFile.java
+✔ The text file (text.txt) must exist in the same folder.
+
+
+STEP 1 — OPEN TERMINAL 1 → RUN UDP SERVER
+---------------------------------------------------------------
+cd Desktop
+# Go to folder containing UDPServerSingleFile.java
+
+javac UDPServerSingleFile.java
+# Compile server code
+
+java UDPServerSingleFile
+# Start server
+# Output:
+# UDP Server listening on port 9876
+# (Server now waits for filename, size, and file data)
+
+
+STEP 2 — OPEN TERMINAL 2 → RUN UDP CLIENT
+---------------------------------------------------------------
+cd Desktop
+# Same folder as client code & text file
+
+javac UDPClientSingleFile.java
+# Compile client code
+
+java UDPClientSingleFile
+# Run client
+# Output:
+# Sent filename: text.txt
+# Sent file size: ____ bytes
+# File data sent successfully.
+
+SERVER TERMINAL OUTPUT:
+# Receiving file: text.txt
+# Expected file size: ____ bytes
+# File received successfully and saved as: received_text.txt
+
+
+===============================================================
+PART 2️⃣ — RUN ON TWO DIFFERENT PCs (BOTH UBUNTU)
+===============================================================
+
+REQUIREMENTS:
+---------------------------------------------------------------
+✔ Both PCs must be on the SAME WiFi/LAN network.
+✔ UDP port 9876 must be open.
+✔ Client must know SERVER PC's IP address.
+
+
+STEP 1 — FIND SERVER PC’s LAN IP
+---------------------------------------------------------------
+On SERVER PC, open terminal:
+
+ip addr show
+
+Look for:
+inet 192.168.x.x        ← THIS IS SERVER IP
+
+Example:
+inet 192.168.1.25
+
+
+STEP 2 — UPDATE CLIENT CODE TO USE SERVER IP
+---------------------------------------------------------------
+In UDPClientSingleFile.java, change:
+
+InetAddress serverIP = InetAddress.getByName("127.0.0.1");
+
+TO:
+
+InetAddress serverIP = InetAddress.getByName("192.168.1.25");
+# (use actual server IP)
+
+
+STEP 3 — RUN SERVER ON SERVER PC
+---------------------------------------------------------------
+cd Desktop
+javac UDPServerSingleFile.java
+java UDPServerSingleFile
+
+# Output:
+# UDP Server listening on port 9876
+# (Server waits for incoming file)
+
+
+STEP 4 — RUN CLIENT ON CLIENT PC
+---------------------------------------------------------------
+cd Desktop
+javac UDPClientSingleFile.java
+java UDPClientSingleFile
+
+# Output (Client PC):
+# Sent filename: text.txt
+# Sent file size: ____ bytes
+# File data sent successfully.
+
+# Output (Server PC):
+# Receiving file: text.txt
+# Expected file size: ____ bytes
+# File received successfully and saved as: received_text.txt
+
+
+===============================================================
+IMPORTANT NOTES FOR BOTH METHODS
+===============================================================
+
+✔ Port number MUST match on both sides:
+     serverPort = 9876
+
+✔ For SAME PC:
+     serverIP = "127.0.0.1"
+
+✔ For TWO PCs:
+     serverIP = "<server LAN IP>"  (e.g., 192.168.1.25)
+
+✔ The file is ALWAYS saved on server as:
+     received_<filename>
+
+✔ To allow the port on server firewall (if needed):
+     sudo ufw allow 9876/udp
+
+✔ Check if server is listening:
+     sudo lsof -i UDP:9876
+
+
+===============================================================
+SUMMARY (SUPER SHORT)
+===============================================================
+
+— SAME PC —
+1. Terminal 1: run server  
+2. Terminal 2: run client  
+3. File transfers successfully.
+
+— TWO PCs —
+1. Find server IP → replace in client code  
+2. Server PC: run server  
+3. Client PC: run client  
+4. File reaches server as received_text.txt  
+
+===============================================================
+
+
+
+
+
+///////////////////////////////////////////
+
+
+
+
+
+
+
+Assignment No: 7
+Title: Write a program using UDP sockets to enable file transfer (Script, Text, Audio and Video) between two machines.
+
+------------------------------------------------------
+1. OBJECTIVE:
+------------------------------------------------------
+• To learn how to transfer files using UDP socket programming.
+• To understand connectionless communication between two systems.
+• To implement real-time file transfer in a client-server model using UDP.
+
+------------------------------------------------------
+2. WHY WE PERFORM THIS PRACTICAL:
+------------------------------------------------------
+• To understand how UDP sends data without establishing a connection.
+• To practice sending large files like text, audio, video, or script files over the network.
+• To learn how data may be lost or unordered in UDP (important for comparison with TCP).
+• To gain experience with sending packets using sendto() and recvfrom() functions.
+
+------------------------------------------------------
+3. THEORY / CONCEPT:
+------------------------------------------------------
+A. What is UDP? :contentReference[oaicite:1]{index=1}
+• UDP (User Datagram Protocol) is a **connectionless** transport layer protocol.
+• No connection establishment (no handshake).
+• No flow control, no error control, no acknowledgment.
+• Best effort delivery → packets may be lost, duplicated, or arrive out of order.
+• Used when speed is more important than reliability (e.g., voice, video, DNS).
+
+UDP Header Fields (8 bytes):  
+1. **Source Port** – Port of sending process  
+2. **Destination Port** – Port of receiving process  
+3. **Length** – Total length of UDP packet  
+4. **Checksum** – For minimal error detection  
+
+B. How UDP Communication Works (Client & Server) :contentReference[oaicite:2]{index=2}
+• Client does **not** connect to server.  
+• Client directly sends datagram using `sendto()`.  
+• Server waits using `recvfrom()` for data.  
+• Server gets the client’s IP + port from received packet.  
+• Server replies using same IP + port.
+
+C. UDP vs TCP (Important difference for file transfer)
+• UDP = Fast, no reliability → file may get corrupted if packets drop  
+• TCP = Slow but guaranteed delivery  
+• UDP is chosen here **just for academic understanding**.
+
+------------------------------------------------------
+4. WHAT IS DONE IN THIS PRACTICAL:
+------------------------------------------------------
+A UDP-based file transfer application is developed.
+
+Server Side:
+1. Create UDP socket using socket().
+2. Bind socket to server IP and port.
+3. Wait for client request (recvfrom()).
+4. Open the requested file (text, script, audio, video).
+5. Read file in chunks.
+6. Send chunks to client using sendto().
+7. Close file and socket.
+
+Client Side:
+1. Create UDP socket.
+2. Send filename request to server.
+3. Receive file data in chunks.
+4. Write data to a new file.
+5. Close socket.
+
+Files you must transfer:
+• One text file  
+• One script file  
+• One audio file  
+• One video file  
+
+(This shows UDP behavior with different file sizes.)
+
+------------------------------------------------------
+5. UDP FUNCTIONS USED:
+------------------------------------------------------
+• **socket()** – Creates UDP socket  
+• **bind()** – Binds socket to a port (server side)  
+• **sendto()** – Sends UDP data to destination  
+• **recvfrom()** – Receives UDP data + sender address  
+• **close()** – Close the socket  
+
+------------------------------------------------------
+6. OUTPUT / EXPECTED RESULT:
+------------------------------------------------------
+Client:
+• “Requesting file from server...”  
+• “Receiving file…”  
+• “File saved successfully.”  
+
+Server:
+• “Client request received for <filename>”  
+• “Sending file…”  
+• “File sent successfully.”
+
+Files received by the client:
+• out.txt  
+• out.mp3  
+• out.mp4  
+• out.py  
+
+(Same as the ones sent by the server.)
+
+------------------------------------------------------
+7. CONCEPTS USED:
+------------------------------------------------------
+• UDP Socket Programming  
+• Datagram-based communication  
+• Connectionless data transfer  
+• Chunk-wise file transfer  
+• Basic error handling in network programming  
+
+------------------------------------------------------
+8. OUTCOME:
+------------------------------------------------------
+• Students learned how to implement file transfer using UDP sockets.
+• Understood the difference between reliable (TCP) and unreliable (UDP) transfer.
+• Learned real-time network programming concepts using sendto() and recvfrom().
+
+------------------------------------------------------
+9. CONCLUSION:
+------------------------------------------------------
+We have successfully implemented UDP socket-based file transfer for script, text, audio, and video files between two machines. :contentReference[oaicite:3]{index=3}
+
+------------------------------------------------------
+10. FREQUENTLY ASKED QUESTIONS:
+------------------------------------------------------
+1. What is UDP and why is it used?  
+2. Why UDP is unreliable compared to TCP?  
+3. Which functions are used in UDP communication?  
+4. Can UDP be used for large file transfer? Why or why not?

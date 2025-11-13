@@ -1,0 +1,75 @@
+Practical 1 CPT topologies 
+
+BUS, RING , STAR, MESH, TREE
+
+1. select the swtitches 2960
+2. select the pcs 
+3. connect the pc to switches first using automatic connection
+4. click on the pc - desktop - ip config - enter the ipv4 address 198.168.1.1
+
+/////////////////
+
+Assignment No. 1  
+Title: Demonstrate the different types of topologies and types of transmission media using Cisco Packet Tracer.
+
+• Objective:
+  – To learn about different types of network topologies and transmission media.  
+  – To understand how to design and implement these topologies using the Cisco Packet Tracer simulation tool.
+
+• Aim:
+  – The main aim is to understand how computers and networking devices are interconnected in different ways (bus, star, mesh, etc.) and to study the types of media used for data transmission in a network.
+
+• Tools Used:
+  – Cisco Packet Tracer Software
+  – Networking components like PCs, switches, hubs, and connecting cables (straight-through, cross-over).
+
+• Concept Description:
+  – Network topology is the arrangement of different elements (links, nodes, devices) in a computer network.
+  – There are two types of topologies:
+    1. Physical Topology – Actual physical connection layout of cables and devices.
+    2. Logical Topology – The flow of data within the network.
+
+  – Common types of topologies:
+    1. **Bus Topology:** All devices are connected to a single communication line (bus or backbone). Data is broadcasted and received by all nodes.  
+       Example setup: Three PCs connected serially via switches using copper straight-through cables.
+    2. **Star Topology:** All devices are connected to a central hub or switch. If one link fails, others remain active.  
+       Example setup: Five PCs connected to one central switch using copper straight-through cables.
+    3. **Mesh Topology:** Every node connects to every other node directly, providing multiple communication paths. Failure in one connection does not affect others, but cable requirements are high.
+
+• Transmission Media:
+  – Transmission media refers to the physical path through which data travels from sender to receiver.
+  – It exists at the Physical Layer (Layer 1) of the OSI model.
+  – Two main types:
+    1. **Guided Media (Wired):** Data signals travel through cables.  
+       Examples:
+       - Twisted Pair Cable (used in LAN)
+       - Coaxial Cable
+       - Optical Fiber (uses light signals)
+    2. **Unguided Media (Wireless):** No physical cables; data transmitted via electromagnetic waves.  
+       Examples:
+       - Radio Waves
+       - Microwaves
+       - Infrared Waves
+
+• Why We Perform This Practical:
+  – To visually understand how devices interconnect in real networks.
+  – To learn the use of networking cables and ports in simulation before real hardware implementation.
+  – To practice creating and testing network connections using Packet Tracer.
+
+• Procedure Summary:
+  1. Open Cisco Packet Tracer.
+  2. Select devices (PCs, switches, hubs).
+  3. Connect devices using appropriate cables.
+  4. Configure connections and test communication using the simulation tab.
+
+• Output:
+  – Successfully implemented bus, star, and mesh topologies in Packet Tracer.
+  – Verified that devices can communicate with each other within each topology using simulation mode (e.g., ping test).
+
+• Outcome:
+  – Students learned how to design and connect networks using various topologies.
+  – Understood the concept of transmission media and their role in data communication.
+
+• Conclusion:
+  – The experiment demonstrated how different topologies and transmission media function in real-world networks.
+  – Cisco Packet Tracer helped visualize and test the working of each network type effectively.

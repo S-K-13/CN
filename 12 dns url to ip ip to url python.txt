@@ -1,0 +1,181 @@
+gedit filename.py
+python3 filename.py 
+
+/////////////
+import socket
+# Imports the socket module which provides access to networking functions,
+# including DNS name resolution functions used in this script.
+
+def get_ip_from_hostname():
+    hostname = input("Enter the Hostname (e.g., www.google.com): ")
+    # Prompts the user to enter a domain name (hostname) and stores it in the variable `hostname`.
+
+    try:
+        ip = socket.gethostbyname(hostname)
+        # Calls socket.gethostbyname(hostname) to resolve the given hostname to an IPv4 address string.
+        # If resolution succeeds, the function returns a string like "142.250.183.196".
+
+        print(f"IP address of {hostname} is: {ip}")
+        # Prints the resolved IP address to the console in a readable format.
+
+    except socket.gaierror:
+        print("Invalid Hostname or unable to resolve!")
+        # Catches socket.gaierror which occurs if the hostname cannot be resolved
+        # (bad name, no network, DNS failure). Prints an error message.
+
+def get_hostname_from_ip():
+    ip_address = input("Enter the IP Address (e.g., 142.250.183.196): ")
+    # Prompts the user to enter an IP address (string) and stores it in `ip_address`.
+
+    try:
+        host = socket.gethostbyaddr(ip_address)
+        # Calls socket.gethostbyaddr(ip_address) to perform a reverse DNS lookup.
+        # On success it returns a tuple: (primary_hostname, aliaslist, ipaddrlist).
+
+        print(f"Hostname for IP {ip_address} is: {host[0]}")
+        # Prints the primary hostname (first element of the returned tuple).
+        # host[0] is typically the canonical name for the IP.
+
+    except socket.herror:
+        print("Invalid IP Address or unable to resolve!")
+        # Catches socket.herror which occurs if the reverse lookup fails
+        # (no PTR record, invalid IP format, or network/DNS issues). Prints an error.
+
+def main():
+    while True:
+        print("\n===== DNS Lookup Menu =====")
+        print("1. Find IP Address from Hostname")
+        print("2. Find Hostname from IP Address")
+        print("3. Exit")
+        # Prints a simple text menu each loop iteration so the user can choose an option.
+
+        choice = input("Enter your choice (1-3): ")
+        # Reads the user's choice as a string.
+
+        if choice == "1":
+            get_ip_from_hostname()
+            # If user entered "1", call the function to resolve hostname → IP.
+
+        elif choice == "2":
+            get_hostname_from_ip()
+            # If user entered "2", call the function to resolve IP → hostname.
+
+        elif choice == "3":
+            print("Exiting... Goodbye!")
+            break
+            # If user entered "3", print exit message and break out of the loop to end the program.
+
+        else:
+            print("Invalid choice! Please enter 1, 2, or 3.")
+            # For any other input, inform the user and re-show the menu.
+
+if __name__ == "__main__":
+    main()
+    # Standard Python idiom: when the script is run directly (not imported), call main().
+    # This starts the interactive menu loop and lets the user perform DNS lookups.
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+Assignment No: 12  
+Title: Write a Program for DNS Lookup  
+
+• Problem Statement:
+  – Write a program for DNS lookup. Given an IP address input, it should return the corresponding URL and vice versa.
+
+• Objective:
+  – To understand the concept of Domain Name System (DNS).
+  – To perform mapping between host names and IP addresses (both ways).
+  – To learn how DNS resolves domain names into IP addresses and vice versa.
+
+• Tools/Software Used:
+  – Programming Language: C / Java / Python (depending on lab setup)
+  – Network connection for DNS queries
+
+• Concept Description:
+
+  1. **Need for DNS:**
+     – Every computer on the internet is identified by a unique IP address (like 142.250.190.78).
+     – Humans, however, find it easier to remember names like “www.google.com”.
+     – DNS (Domain Name System) provides a service to map human-readable names (domain names) into IP addresses and vice versa.
+     – Without DNS, users would need to remember long numeric IP addresses to access websites.
+
+  2. **Basic Idea:**
+     – DNS acts like a phonebook of the internet.
+     – When you enter a website URL, your computer asks a DNS server to resolve it to the correct IP address.
+     – The reverse process (IP to domain name) is called **Reverse DNS Lookup**.
+
+  3. **How DNS Works:**
+     – The DNS system is hierarchical and distributed.
+     – It consists of different types of servers:
+       • **Root DNS Servers** – Direct queries to the appropriate Top-Level Domain (TLD) servers (.com, .org, .in, etc.)
+       • **TLD Servers** – Store addresses of authoritative DNS servers for each domain.
+       • **Authoritative DNS Servers** – Contain the actual mapping between domain names and IP addresses.
+     – Example Flow:
+       1. The user enters “www.example.com”.
+       2. The browser sends a request to the DNS resolver (usually your ISP).
+       3. The resolver queries the root server → then the TLD → then the authoritative server.
+       4. The IP address of “www.example.com” is returned.
+       5. The resolver caches the result for faster future access.
+
+  4. **Name Space:**
+     – The set of all possible names used in the Internet.
+     – Each name is mapped to a unique IP address.
+     – Can be organized as:
+       • **Flat Name Space:** All names are unique globally, stored in a single file (not scalable).
+       • **Hierarchical Name Space:** Uses a tree structure for better organization and scalability.
+
+  5. **Domain Name Space:**
+     – Structured as an inverted tree with the **root (.)** at the top.
+     – Each node or branch represents a domain.
+     – Top-Level Domains (TLDs) include:
+       • Generic: .com, .org, .edu, .net
+       • Country: .in, .us, .uk, .jp
+
+  6. **Label and Domain:**
+     – Each node in the DNS tree has a label (max 63 characters).
+     – A full domain name is a series of labels separated by dots.
+     – Example: “mail.yahoo.com.” (ends with a dot representing the root).
+
+  7. **Resolution Process:**
+     – **Name-to-Address Mapping:**
+       • Converts domain name to IP.
+       • Example: “www.google.com” → “142.250.190.78”
+     – **Address-to-Name Mapping (Reverse DNS):**
+       • Converts IP address to domain name.
+       • Example: “142.250.190.78” → “www.google.com”
+     – Uses a **Resolver** and **Name Server**.
+       • Resolver: DNS client on your system.
+       • Name Server: Responds to queries and provides IP mappings.
+
+  8. **Types of DNS Queries:**
+     – **Recursive Query:** Resolver asks the DNS server for a complete answer.
+     – **Iterative Query:** Server responds with a referral to another DNS server.
+     – **Inverse Query (PTR):** Converts IP to domain name by appending “in-addr.arpa” to reversed IP.
+
+     Example:
+     ```
+     IP: 132.34.45.121  
+     Query: 121.45.34.132.in-addr.arpa
+     ```
+     – This query is processed by the inverse domain to find the corresponding host name.
+
+  9. **Steps in DNS Lookup Process:**
+     1. The user enters a domain name into the browser.
+     2. Browser checks its cache.
+     3. If not found, it queries the local DNS resolver.
+     4. The resolver checks its cache; if not found, it queries higher-level DNS servers.
+     5. Once resolved, the IP address is returned and stored in the cache.
+     6. The browser uses this IP to establish a TCP connection with the web server.
+
+• Example Program Logic (in Python):
+  ```python
+  import socket
+
+  # Get IP from domain name
+  domain = input("Enter domain name: ")
+  print("IP Address:", socket.gethostbyname(domain))
+
+  # Get domain name from IP
+  ip = input("Enter IP address: ")
+  print("Domain Name:", socket.gethostbyaddr(ip))

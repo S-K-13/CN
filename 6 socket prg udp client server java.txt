@@ -1,0 +1,505 @@
+gedit HelloWorld.java
+javac HelloWorld.java
+java HelloWorld
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+===========================================
+UDP SERVER (CORRECTED) – FULL EXPLANATION
+===========================================
+
+// IMPORTS EXPLAINED:
+import java.net.DatagramPacket;  
+// DatagramPacket represents the data container used for sending and receiving UDP packets.
+
+import java.net.DatagramSocket;  
+// DatagramSocket is the UDP socket class used to send/receive datagram packets.
+
+import java.net.InetAddress;  
+// InetAddress represents an IP address (e.g., localhost or 192.168.x.x).
+
+import java.util.Scanner;  
+// Scanner is used to take user input from keyboard.
+
+public class UDPServer {
+    public static void main(String[] args) {
+        try {
+            DatagramSocket socket = new DatagramSocket(5000);
+            // Creates a UDP socket bound to port 5000.
+            // This makes port 5000 the server’s listening port.
+
+            Scanner scanner = new Scanner(System.in);
+            // Scanner object for reading text input from the user.
+
+            System.out.print("Enter message to send: ");
+            String message = scanner.nextLine();
+            // Takes a message from keyboard input.
+
+            byte[] buffer = message.getBytes();
+            // Converts the message (String) into bytes (UDP must send bytes only).
+
+            InetAddress clientAddress = InetAddress.getByName("localhost");
+            // Resolves the IP address of the client.
+            // "localhost" = 127.0.0.1 (same PC).
+
+            DatagramPacket packet =
+                new DatagramPacket(buffer, buffer.length, clientAddress, 6000);
+            // Creates the datagram packet to send:
+            // buffer        → message bytes
+            // buffer.length → message size
+            // clientAddress → IP (client)
+            // 6000          → port on which client is listening
+
+            socket.send(packet);
+            // Sends the UDP packet to the specified client IP and port.
+
+            System.out.println("Message sent to client.");
+
+            socket.close();
+            // Closes the UDP socket.
+
+            scanner.close();
+            // Closes scanner resource.
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Prints detailed error if anything goes wrong.
+        }
+    }
+}
+
+
+===========================================
+UDP CLIENT (CORRECTED) – FULL EXPLANATION
+===========================================
+
+// IMPORTS EXPLAINED:
+import java.net.DatagramPacket;  
+// DatagramPacket holds received UDP data.
+
+import java.net.DatagramSocket;  
+// DatagramSocket is used to receive UDP packets.
+
+public class UDPClient {
+    public static void main(String[] args) {
+        try {
+            DatagramSocket socket = new DatagramSocket(6000);
+            // Creates UDP socket bound to port 6000.
+            // Client LISTENS on port 6000 for incoming datagrams.
+
+            byte[] buffer = new byte[1024];
+            // Buffer used to store incoming data from server.
+
+            DatagramPacket packet =
+                new DatagramPacket(buffer, buffer.length);
+            // Creates a receiving packet.
+            // No IP/port needed now; they will be filled automatically by receive().
+
+            System.out.println("Client is waiting for server message...");
+
+            socket.receive(packet);
+            // Waits for a datagram from server.
+            // Blocking call → stops program until a packet is received.
+
+            String message =
+                new String(packet.getData(), 0, packet.getLength());
+            // Converts received bytes into a readable String.
+            // packet.getLength() ensures only valid bytes are used.
+
+            System.out.println("Message from server: " + message);
+            // Displays the message sent by server.
+
+            socket.close();
+            // Closes client socket.
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Prints the error if something goes wrong.
+        }
+    }
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+===========================================
+STEPS TO RUN UDP CLIENT–SERVER ON ONE PC
+===========================================
+
+1️⃣ OPEN TERMINAL 1 → This will run the UDP CLIENT
+----------------------------------------------------
+cd Desktop
+# Move to the folder where your .java files exist.
+
+javac UDPClient.java
+# Compile the client code.
+
+java UDPClient
+# Run the client.
+# You should see:
+# "Client is waiting for server message..."
+
+# DO NOT close this terminal.
+# Client is now waiting on port 6000.
+
+
+2️⃣ OPEN TERMINAL 2 → This will run the UDP SERVER
+----------------------------------------------------
+cd Desktop
+# Go to the same folder where server file is stored.
+
+javac UDPServer.java
+# Compile the server code.
+
+java UDPServer
+# Run the server.
+
+# It will ask:
+# "Enter message to send:"
+
+Type any message, e.g.:
+Hello from UDP Server!
+
+
+3️⃣ AFTER TYPING THE MESSAGE → Press ENTER
+----------------------------------------------------
+You will see in Terminal 2 (Server):
+"Message sent to client."
+
+Immediately check Terminal 1 (Client):
+It will show:
+"Message from server: Hello from UDP Server!"
+
+
+4️⃣ BOTH PROGRAMS SUCCESSFULLY EXIT
+----------------------------------------------------
+UDP communication complete.
+Server sent message to port 6000.
+Client received message from port 6000.
+
+
+===========================================
+IMPORTANT NOTES
+===========================================
+
+✔ RUN THE CLIENT FIRST  
+   Because client must start listening on port 6000 before server sends.
+
+✔ SERVER SENDS MESSAGE TO:
+   IP Address: localhost (127.0.0.1)
+   Port: 6000
+
+✔ CLIENT LISTENS ON PORT 6000  
+   So server must send to port 6000.
+
+✔ UDP HAS NO CONNECTION  
+   Client & server do not "connect".  
+   They only send/receive packets.
+
+
+===========================================
+SUMMARY
+===========================================
+
+Terminal 1 (Client):
+    javac UDPClient.java
+    java UDPClient
+
+Terminal 2 (Server):
+    javac UDPServer.java
+    java UDPServer
+    (Type message → press Enter)
+
+===========================================
+///////////////////////////////////////////////////////////////////////////////////
+
+===========================================
+STEPS TO RUN UDP CLIENT–SERVER ON TWO PCs
+===========================================
+
+REQUIREMENTS:
+-------------------------------------------
+✔ Both PCs must be connected to the SAME WiFi/LAN network.
+✔ Java (JDK) must be installed on BOTH PCs.
+✔ Server and Client .java files must be available on each machine.
+✔ Firewall must allow UDP traffic.
+
+
+STEP 1️⃣ — FIND SERVER PC’s IP ADDRESS
+-------------------------------------------
+On SERVER PC (where UDPServer.java will run):
+
+Open terminal and type:
+    ifconfig
+or:
+    ip addr show
+
+Look for "inet" under your WiFi/Ethernet adapter.
+Example:
+    inet 192.168.1.20
+
+This is the SERVER IP.
+You MUST use this IP in the CLIENT code.
+
+
+STEP 2️⃣ — MODIFY SERVER CODE (NO CHANGE REQUIRED)
+---------------------------------------------------
+Server already binds to:
+    new DatagramSocket(5000);
+
+This means server listens on port 5000 on ANY network interface.
+
+
+STEP 3️⃣ — MODIFY CLIENT CODE (IMPORTANT CHANGE)
+---------------------------------------------------
+In UDPClient.java, replace
+    InetAddress.getByName("localhost")
+WITH:
+    InetAddress.getByName("SERVER_IP")
+
+For example:
+    InetAddress.getByName("192.168.1.20")
+
+This tells the client to send message to the server’s machine.
+
+
+STEP 4️⃣ — COPY FILES
+---------------------------------------------------
+Place UDPServer.java on SERVER PC.
+Place UDPClient.java on CLIENT PC.
+
+
+STEP 5️⃣ — RUN SERVER ON SERVER PC
+---------------------------------------------------
+Open Terminal on SERVER PC:
+
+    cd Desktop
+    javac UDPServer.java
+    java UDPServer
+
+You will see:
+    "Enter message to send:"
+
+
+STEP 6️⃣ — RUN CLIENT ON CLIENT PC
+---------------------------------------------------
+Open Terminal on CLIENT PC:
+
+    cd Desktop
+    javac UDPClient.java
+    java UDPClient
+
+Client will show:
+    "Client is waiting for server message..."
+
+
+STEP 7️⃣ — SEND MESSAGE FROM SERVER TO CLIENT
+---------------------------------------------------
+Go back to SERVER terminal.
+Type any message:
+    Hello from Server!
+
+Press ENTER.
+
+You will see:
+    "Message sent to client."
+
+CLIENT PC will receive:
+    "Message from server: Hello from Server!"
+
+
+===========================================
+IMPORTANT NOTES
+===========================================
+
+✔ SERVER runs on:
+    Port: 5000
+    IP: SERVER_IP (example 192.168.1.20)
+
+✔ CLIENT must send to:
+    IP: SERVER_IP
+    Port: 5000
+
+✔ Both PCs MUST be on same network.
+   Example:
+       192.168.1.20 (Server)
+       192.168.1.35 (Client)
+   Same network → works.
+
+✔ If firewall blocks UDP:
+       sudo ufw allow 5000/udp
+
+✔ UDP does NOT make a connection.
+   Server just LISTENS.
+   Client just SENDS or RECEIVES directly.
+
+✔ If server closes immediately:
+   Restart server and send message again.
+
+
+===========================================
+SUMMARY OF COMMANDS
+===========================================
+
+On SERVER PC:
+    javac UDPServer.java
+    java UDPServer
+    (Type message → press Enter)
+
+On CLIENT PC:
+    javac UDPClient.java
+    java UDPClient
+    (Wait for message)
+
+===========================================
+
+
+
+
+//////////////////////////////////////////////////////////////////////
+
+
+
+
+Assignment No: 5
+Title: Socket Programming using C/C++/Java
+• TCP Client, TCP Server
+• UDP Client, UDP Server
+
+------------------------------------------------------
+1. OBJECTIVE:
+------------------------------------------------------
+• To learn and implement socket programming in computer networks.
+• To understand client-server communication models.
+• To learn and differentiate between TCP (connection-oriented) and UDP (connectionless) communication.
+
+------------------------------------------------------
+2. WHY WE PERFORM THIS PRACTICAL:
+------------------------------------------------------
+• To gain hands-on experience with real-time network communication.
+• To learn how client and server programs exchange data over TCP and UDP.
+• To understand how sockets act as endpoints for sending and receiving data across networks.
+• To prepare students for real-world applications like chat systems, file transfers, and web communication.
+
+------------------------------------------------------
+3. CONCEPT / THEORY:
+------------------------------------------------------
+A. Socket Programming:
+• A socket is an endpoint for communication between two machines.
+• It allows a process on one computer to communicate with a process on another over a network.
+• Socket programming uses a set of functions to establish connections, send, and receive data.
+
+B. Types of Sockets:
+• Stream Sockets (SOCK_STREAM): Use TCP; reliable, connection-oriented.
+• Datagram Sockets (SOCK_DGRAM): Use UDP; unreliable, connectionless.
+
+------------------------------------------------------
+4. USER DATAGRAM PROTOCOL (UDP):
+------------------------------------------------------
+• UDP is a simple transport-layer protocol that sends data as independent packets called datagrams.
+• It is connectionless — no need to establish or terminate a connection.
+• UDP does not guarantee delivery, ordering, or duplication protection.
+• It is used for real-time applications like DNS, video streaming, VoIP, and online gaming.
+
+UDP SOCKET API Functions:
+• socket(): Create a socket.
+• bind(): Bind socket to a local address and port.
+• sendto(): Send data to a specific destination.
+• recvfrom(): Receive data from a sender.
+
+UDP Client Steps:
+1. Create a socket using socket().
+2. Use sendto() to send data.
+3. Use recvfrom() to receive data.
+4. Close the socket.
+
+UDP Server Steps:
+1. Create a socket using socket().
+2. Bind it to an address and port using bind().
+3. Wait for data using recvfrom().
+4. Send response using sendto().
+5. Close the socket.
+
+------------------------------------------------------
+5. TRANSMISSION CONTROL PROTOCOL (TCP):
+------------------------------------------------------
+• TCP is a connection-oriented protocol — a reliable, stream-based communication.
+• It ensures data is received accurately and in the correct order.
+• Uses a 3-way handshake to establish a connection.
+• Provides error checking, flow control, and congestion control.
+
+TCP SOCKET API Functions:
+• socket(): Create a socket for communication.
+• bind(): Bind socket to a local address and port.
+• listen(): Set up the server to wait for client connections.
+• accept(): Accept a connection from a client.
+• connect(): Used by the client to connect to a server.
+• send()/recv(): Send and receive data.
+• close(): Close the socket.
+
+TCP Client Steps:
+1. Create socket using socket().
+2. Connect to the server using connect().
+3. Send data using send().
+4. Receive data using recv().
+5. Close the connection.
+
+TCP Server Steps:
+1. Create socket using socket().
+2. Bind socket to IP address and port using bind().
+3. Start listening for clients using listen().
+4. Accept incoming connection using accept().
+5. Exchange data using send() and recv().
+6. Close socket when done.
+
+------------------------------------------------------
+6. TOOLS AND TECHNOLOGIES USED:
+------------------------------------------------------
+• Language: C / C++ / Java (depending on implementation)
+• Operating System: Ubuntu / Windows
+• Library: socket, netinet/in.h, sys/socket.h (for C/C++)
+• Functions: socket(), bind(), connect(), send(), recv(), close()
+
+------------------------------------------------------
+7. OUTPUT / EXPECTED RESULT:
+------------------------------------------------------
+• The TCP client and server exchange messages successfully (e.g., “Hello from Server”, “Hello from Client”).
+• The UDP client and server send and receive datagrams without establishing a connection.
+• Displays confirmation of message transmission and reception between the two systems.
+
+------------------------------------------------------
+8. OUTCOME:
+------------------------------------------------------
+• Students learned to create client-server applications using sockets.
+• Understood the difference between TCP and UDP communication.
+• Gained practical skills to develop real-time network programs.
+
+------------------------------------------------------
+9. CONCEPTS USED:
+------------------------------------------------------
+• Socket Programming
+• TCP and UDP Protocols
+• Client-Server Architecture
+• Connection Establishment and Data Transfer
+• Error Handling in Network Communication
+
+------------------------------------------------------
+10. CONCLUSION:
+------------------------------------------------------
+We successfully implemented socket programming using C/C++/Java.  
+We understood how TCP provides reliable communication and how UDP allows fast, connectionless data transfer between client and server.
+
+------------------------------------------------------
+FREQUENTLY ASKED QUESTIONS:
+------------------------------------------------------
+1. What is client-server communication?
+   → It is a communication model where one device (client) requests data or service, and another device (server) responds to it.
+2. What is socket programming? 
+   → It is a method to establish communication between processes using network sockets.
+3. Explain TCP and UDP.
+   → TCP is reliable and connection-oriented; UDP is faster but connectionless and unreliable.

@@ -1,0 +1,147 @@
+select two pcs
+laptop
+smartphone
+accesspoint ap-pt
+switch 2950-24
+router 1941
+
+for pc1:
+ipv4 address 192.168.1.11
+def gateway 192.168.1.1
+
+open router:
+go to config
+select gigabitethernet 0/0 
+enter ipv4 address 192.168.1.1 which def gateway of pc1
+turn on
+
+open accesspoint
+go to config
+select port 1
+enter ssid as ssk
+click wep 
+enter wep password 1234567890
+turn on 
+
+open pc2
+turn off
+swap the component with wmp300n
+turn on
+go to desktop
+open pc wireless
+connect 
+click on ssk 
+enter password 1234567890
+connection estb
+
+open laptop
+turn off
+swap the component with wpc300n
+turn on
+go to desktop
+open pc wireless
+connect 
+click on ssk 
+enter password 1234567890
+connection estb
+
+open smartphone 
+go to config
+open wireless
+enter ssid as ssk 
+click wep and enter wep password 1234567890
+check below ip config
+click static
+enter ipv4 as 192.168.1.14
+turn on 
+connection estb
+
+open pc2 
+desk
+ip config
+enter ipv4 192.168.1.12
+def gateway 192.168.1.1
+
+open laptop 
+desk
+ip config
+enter ipv4 192.168.1.13
+def gateway 192.168.1.1
+
+/////////////////////////////////////
+
+Assignment No: 2
+Title: Setup a WAN which contains wired as well as wireless LAN by using a Packet Tracer tool and demonstrate the transfer of a packet from LAN 1 (wired LAN) to LAN 2 (wireless LAN).
+
+• Objective:
+  – To configure wired LAN and wireless LAN.
+  – To configure an access point and connect both LANs via WAN.
+  – To demonstrate data transfer between wired and wireless networks.
+
+• Aim:
+  – The main aim of this practical is to understand how a Wide Area Network (WAN) can connect multiple Local Area Networks (LANs) that use different connection types (wired and wireless).
+  – To learn the configuration of network devices such as routers, switches, and access points in Cisco Packet Tracer.
+
+• Tools Used:
+  – Cisco Packet Tracer Software
+  – Network devices: PCs, Switches, Routers, Access Points, and Wireless Devices
+  – Cables: Copper straight-through and crossover cables
+
+• Concept Description:
+  1. **Wired LAN (Local Area Network):**
+     – A wired LAN connects computers and other devices within a limited area using Ethernet cables (Cat 5e, Cat 6).
+     – It provides high-speed, reliable, and secure communication.
+     – Devices like switches and routers are used to manage data flow.
+
+  2. **Wireless LAN (WLAN):**
+     – A wireless LAN uses radio waves to connect devices to the network without physical cables.
+     – It uses Wi-Fi technology and allows devices like laptops and mobile phones to connect freely within the network coverage area.
+     – A Wireless Access Point (AP) acts as a bridge between wired and wireless segments.
+
+  3. **WAN (Wide Area Network):**
+     – A WAN connects multiple LANs located in different geographical locations.
+     – It uses routers to forward data between networks.
+     – WANs can span cities or even countries and rely on technologies like leased lines, fiber optics, and satellite links.
+     – The Internet is the largest example of a WAN.
+
+  4. **Access Point (AP):**
+     – The access point allows wireless devices to connect to the wired LAN.
+     – It transmits and receives data over Wi-Fi and extends the network range.
+
+  5. **Router:**
+     – A router connects multiple networks and directs data packets between them based on IP addresses.
+     – It ensures that data from LAN 1 can reach LAN 2 through proper routing configuration.
+
+• Why We Perform This Practical:
+  – To learn how to connect and integrate wired and wireless LANs using a WAN connection.
+  – To understand device roles like router, access point, and switch in establishing connectivity.
+  – To practice configuring IP addresses and testing data transfer between networks.
+
+• Procedure Summary:
+  1. Open Cisco Packet Tracer.
+  2. Create two LANs — one wired and one wireless.
+  3. Use switches for wired LAN and an access point for wireless LAN.
+  4. Connect both LANs through routers (WAN setup).
+  5. Assign IP addresses to all devices properly.
+  6. Configure access point settings (SSID, channel, etc.) for Wi-Fi.
+  7. Use “ping” command or simulation to test packet transfer between LAN 1 and LAN 2.
+
+• Output:
+  – Successfully configured a WAN that connects both wired and wireless LANs.
+  – Verified packet transfer between LAN 1 (wired) and LAN 2 (wireless) using the simulation mode in Packet Tracer.
+  – The communication between both networks confirms correct routing and configuration.
+
+• Outcome:
+  – Students learned to configure wired and wireless LANs.
+  – Understood how an access point and router enable inter-network communication.
+  – Gained hands-on experience in WAN setup using Cisco Packet Tracer.
+
+• Concept Used:
+  – Network Topologies (Star, Extended Star)
+  – IP Addressing and Subnetting
+  – Router configuration and Access Point setup
+  – Packet Simulation and Connectivity Testing
+
+• Conclusion:
+  – We have successfully set up a WAN that connects wired and wireless LANs using Cisco Packet Tracer.
+  – The experiment demonstrated how routers and access points help integrate different network types for seamless communication.

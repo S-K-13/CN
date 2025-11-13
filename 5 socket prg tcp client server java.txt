@@ -1,0 +1,509 @@
+gedit HelloWorld.java
+javac HelloWorld.java
+java HelloWorld
+
+////////////////////////////////////////////////////////////////////////////////////
+
+
+Steps to Run TCP Client & Server in Ubuntu (Two Terminals)
+
+STEP 1: Create the Java files
+Open Terminal 1 (for server)
+
+Go to your folder (Desktop or Documents):
+cd Desktop
+Create server file:
+gedit TCPServer.java
+Paste your TCPServer code → Save → Close.
+Open Terminal 2 (for client)
+cd Desktop
+Create client file:
+gedit TCPClient.java
+Paste your TCPClient code → Save → Close.
+STEP 2: Compile Both Files
+In Terminal 1 (server terminal):
+javac TCPServer.java
+In Terminal 2 (client terminal):
+javac TCPClient.java
+If no errors — perfect.
+STEP 3: Run Server First
+In Terminal 1:
+java TCPServer
+You should see:
+
+Server started. Waiting for client...
+This means server is listening on port 5000.
+
+STEP 4: Run Client
+In Terminal 2:
+java TCPClient
+You should see:
+Connected to server.
+Message from server: Hello from Server!
+Server terminal will display:
+Client connected!
+Message sent and server closed.
+
+If You Get Error Like:
+“Port 5000 already in use”
+
+OR
+
+Client: Connection refused
+
+OR
+
+Server not starting
+
+Then the correction is done on the SERVER side, not the client.
+
+✅ WHY?
+✔️ The server is the one that OPENS the port (5000):
+ServerSocket server = new ServerSocket(5000);
+
+
+If port 5000 is already used by another process,
+the server cannot start, so the client will fail automatically.
+
+The client only connects to a port.
+
+If the server is not running, the client cannot connect.
+
+What You Should Fix (on Server Side)
+Fix 1 → Change the port number in the server
+
+Example:
+ServerSocket server = new ServerSocket(6000);
+Then also update client:
+Socket socket = new Socket("localhost", 6000);
+
+
+Server and client port numbers must match.
+Fix 2 → Free the port (if you want to keep same port 5000)
+Step 1: Check who is using port 5000
+sudo lsof -i :5000
+It will show something like:
+java   2314   user   5000
+Step 2: Kill that process
+kill -9 <PID>
+Example:
+kill -9 2314
+
+
+Now run your server again:
+java TCPServer
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+Running your TCP Client–Server Java program on two different PCs is very easy once you understand how IP addresses work.
+Here is the complete, step-by-step guide 👇
+
+✅ REQUIREMENTS
+
+✔ Both PCs must be connected to the same network (WiFi or LAN)
+✔ Java must be installed on both systems
+✔ Firewall must allow Java programs to use ports
+
+🖥️ Assume:
+
+PC 1 = Server
+
+PC 2 = Client
+
+Server is listening on port 5000
+
+STEP 1️⃣ — Find Server PC’s IP Address
+
+⚡ On PC 1 (Server PC) open terminal and type:
+
+For Ubuntu:
+ifconfig
+
+
+or
+
+ip addr show
+
+
+Look for:
+
+inet 192.168.x.x
+
+
+Example server IP:
+
+192.168.1.20
+
+
+👉 This IP is the address the client will connect to.
+
+STEP 2️⃣ — Update Client Code
+
+In your client code, replace "localhost" with the server PC’s IP:
+
+Socket socket = new Socket("192.168.1.20", 5000);
+
+
+⚠️ localhost works only when server and client are on the same machine.
+On two PCs, you MUST use server’s LAN IP.
+
+STEP 3️⃣ — Start Server on PC 1
+
+On PC 1:
+
+javac TCPServer.java
+java TCPServer
+
+
+Output should be:
+
+Server started. Waiting for client...
+
+
+The server will now listen for connections on:
+
+192.168.1.20:5000
+
+(or whatever your real IP is)
+
+STEP 4️⃣ — Start Client on PC 2
+
+On PC 2:
+
+javac TCPClient.java
+java TCPClient
+
+
+If connection succeeds, you will see:
+
+Connected to server.
+Message from server: Hello from Server!
+
+
+Server terminal shows:
+
+Client connected!
+Message sent and server closed.
+
+🛑 If It Does NOT Work — Fix These Issues
+❌ Problem 1: Firewall Blocking Port
+
+On Ubuntu server, allow port 5000:
+
+sudo ufw allow 5000
+
+❌ Problem 2: Wrong IP Address
+
+Make sure server IP is correct:
+
+ip addr
+
+
+Use inet not 127.0.0.1
+NEVER use localhost for two-PC communication.
+
+❌ Problem 3: Client & Server on Different Networks
+
+They MUST be in same network:
+Example:
+
+Server: 192.168.1.20
+
+Client: 192.168.1.35
+→ Same network ✔️
+
+If:
+
+Server: 192.168.1.20
+
+Client: 10.0.4.12
+→ Different networks ❌
+
+❌ Problem 4: Port Already in Use
+
+Check:
+
+sudo lsof -i :5000
+
+
+Kill if needed:
+
+kill -9 <PID>
+
+📌 Summary (Very Important)
+PC	Role	Command	Note
+PC 1	Server	java TCPServer	Must run first
+PC 2	Client	java TCPClient	Must use server IP
+
+Client line must be:
+
+Socket socket = new Socket("<server ip>", 5000);
+
+🎉 Done! Your program now works over two different computers.
+
+///////////////////////////////////////////////////////////////////////////////////
+
+===============================
+TCP CLIENT – LINE-BY-LINE EXPLANATION (JAVA COMMENTS)
+===============================
+
+import java.io.InputStream;
+import java.net.Socket;
+// Import InputStream for receiving data.
+// Import Socket for connecting to the server.
+
+public class TCPClient {
+// Defines the TCPClient class.
+
+    public static void main(String[] args) {
+    // Program execution starts here.
+
+        try {
+        // try block to catch and handle any networking errors.
+
+            Socket socket = new Socket("localhost", 5000);
+            // Creates a TCP socket and connects to server at localhost on port 5000.
+            // If server is not running, this will throw an exception.
+
+            System.out.println("Connected to server.");
+            // Confirms connection success.
+
+            InputStream in = socket.getInputStream();
+            // Obtains the input stream that receives data from server.
+
+            byte[] buffer = new byte[1024];
+            // Allocates a buffer to store incoming bytes.
+
+            int bytesRead = in.read(buffer);
+            // Reads data sent from the server into the buffer.
+            // The function returns number of bytes read.
+            // This method waits until server sends data.
+
+            String message = new String(buffer, 0, bytesRead);
+            // Converts the received bytes into a readable string.
+
+            System.out.println("Message from server: " + message);
+            // Prints the message received from the server.
+
+            socket.close();
+            // Closes the socket and disconnects from server.
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Prints any exception or error that occurs.
+        }
+    }
+}
+
+
+===============================
+TCP SERVER – LINE-BY-LINE EXPLANATION (JAVA COMMENTS)
+===============================
+
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+// ServerSocket is used for listening for client connections.
+// Socket is for communicating once the client is connected.
+// OutputStream is used for sending data to the client.
+
+public class TCPServer {
+// Defines the TCPServer class.
+
+    public static void main(String[] args) {
+    // Main method begins.
+
+        try {
+        // try block to catch network or IO exceptions.
+
+            ServerSocket server = new ServerSocket(5000);
+            // Creates a server socket that listens on port 5000.
+
+            System.out.println("Server started. Waiting for client...");
+            // Indicates server is ready but waiting for a client.
+
+            Socket clientSocket = server.accept();
+            // Waits until a client connects.
+            // When connection arrives, accept() returns a Socket object.
+
+            System.out.println("Client connected!");
+            // Confirms client has successfully connected.
+
+            OutputStream out = clientSocket.getOutputStream();
+            // Gets the output stream used to send data to the client.
+
+            String message = "Hello from Server!";
+            // Message that server wants to send to the client.
+
+            out.write(message.getBytes());
+            // Converts string to bytes and sends it to client.
+
+            out.flush();
+            // Ensures all bytes are sent without delay.
+
+            clientSocket.close();
+            // Closes the client connection after sending the message.
+
+            server.close();
+            // Shuts down the server socket (stops listening on port 5000).
+
+            System.out.println("Message sent and server closed.");
+            // Final confirmation message.
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Prints the detailed error message if anything goes wrong.
+        }
+    }
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+Assignment No: 5
+Title: Socket Programming using C/C++/Java
+• TCP Client, TCP Server
+• UDP Client, UDP Server
+
+------------------------------------------------------
+1. OBJECTIVE:
+------------------------------------------------------
+• To learn and implement socket programming in computer networks.
+• To understand client-server communication models.
+• To learn and differentiate between TCP (connection-oriented) and UDP (connectionless) communication.
+
+------------------------------------------------------
+2. WHY WE PERFORM THIS PRACTICAL:
+------------------------------------------------------
+• To gain hands-on experience with real-time network communication.
+• To learn how client and server programs exchange data over TCP and UDP.
+• To understand how sockets act as endpoints for sending and receiving data across networks.
+• To prepare students for real-world applications like chat systems, file transfers, and web communication.
+
+------------------------------------------------------
+3. CONCEPT / THEORY:
+------------------------------------------------------
+A. Socket Programming:
+• A socket is an endpoint for communication between two machines.
+• It allows a process on one computer to communicate with a process on another over a network.
+• Socket programming uses a set of functions to establish connections, send, and receive data.
+
+B. Types of Sockets:
+• Stream Sockets (SOCK_STREAM): Use TCP; reliable, connection-oriented.
+• Datagram Sockets (SOCK_DGRAM): Use UDP; unreliable, connectionless.
+
+------------------------------------------------------
+4. USER DATAGRAM PROTOCOL (UDP):
+------------------------------------------------------
+• UDP is a simple transport-layer protocol that sends data as independent packets called datagrams.
+• It is connectionless — no need to establish or terminate a connection.
+• UDP does not guarantee delivery, ordering, or duplication protection.
+• It is used for real-time applications like DNS, video streaming, VoIP, and online gaming.
+
+UDP SOCKET API Functions:
+• socket(): Create a socket.
+• bind(): Bind socket to a local address and port.
+• sendto(): Send data to a specific destination.
+• recvfrom(): Receive data from a sender.
+
+UDP Client Steps:
+1. Create a socket using socket().
+2. Use sendto() to send data.
+3. Use recvfrom() to receive data.
+4. Close the socket.
+
+UDP Server Steps:
+1. Create a socket using socket().
+2. Bind it to an address and port using bind().
+3. Wait for data using recvfrom().
+4. Send response using sendto().
+5. Close the socket.
+
+------------------------------------------------------
+5. TRANSMISSION CONTROL PROTOCOL (TCP):
+------------------------------------------------------
+• TCP is a connection-oriented protocol — a reliable, stream-based communication.
+• It ensures data is received accurately and in the correct order.
+• Uses a 3-way handshake to establish a connection.
+• Provides error checking, flow control, and congestion control.
+
+TCP SOCKET API Functions:
+• socket(): Create a socket for communication.
+• bind(): Bind socket to a local address and port.
+• listen(): Set up the server to wait for client connections.
+• accept(): Accept a connection from a client.
+• connect(): Used by the client to connect to a server.
+• send()/recv(): Send and receive data.
+• close(): Close the socket.
+
+TCP Client Steps:
+1. Create socket using socket().
+2. Connect to the server using connect().
+3. Send data using send().
+4. Receive data using recv().
+5. Close the connection.
+
+TCP Server Steps:
+1. Create socket using socket().
+2. Bind socket to IP address and port using bind().
+3. Start listening for clients using listen().
+4. Accept incoming connection using accept().
+5. Exchange data using send() and recv().
+6. Close socket when done.
+
+------------------------------------------------------
+6. TOOLS AND TECHNOLOGIES USED:
+------------------------------------------------------
+• Language: C / C++ / Java (depending on implementation)
+• Operating System: Ubuntu / Windows
+• Library: socket, netinet/in.h, sys/socket.h (for C/C++)
+• Functions: socket(), bind(), connect(), send(), recv(), close()
+
+------------------------------------------------------
+7. OUTPUT / EXPECTED RESULT:
+------------------------------------------------------
+• The TCP client and server exchange messages successfully (e.g., “Hello from Server”, “Hello from Client”).
+• The UDP client and server send and receive datagrams without establishing a connection.
+• Displays confirmation of message transmission and reception between the two systems.
+
+------------------------------------------------------
+8. OUTCOME:
+------------------------------------------------------
+• Students learned to create client-server applications using sockets.
+• Understood the difference between TCP and UDP communication.
+• Gained practical skills to develop real-time network programs.
+
+------------------------------------------------------
+9. CONCEPTS USED:
+------------------------------------------------------
+• Socket Programming
+• TCP and UDP Protocols
+• Client-Server Architecture
+• Connection Establishment and Data Transfer
+• Error Handling in Network Communication
+
+------------------------------------------------------
+10. CONCLUSION:
+------------------------------------------------------
+We successfully implemented socket programming using C/C++/Java.  
+We understood how TCP provides reliable communication and how UDP allows fast, connectionless data transfer between client and server.
+
+------------------------------------------------------
+FREQUENTLY ASKED QUESTIONS:
+------------------------------------------------------
+1. What is client-server communication?
+   → It is a communication model where one device (client) requests data or service, and another device (server) responds to it.
+2. What is socket programming? 
+   → It is a method to establish communication between processes using network sockets.
+3. Explain TCP and UDP.
+   → TCP is reliable and connection-oriented; UDP is faster but connectionless and unreliable.
